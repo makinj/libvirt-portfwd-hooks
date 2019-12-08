@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -18,15 +19,13 @@ func main() {
 	log.SetOutput(f)
 
 	//Verify arguments
-	if len(os.Args) != 3 {
+	if len(os.Args) < 3 {
 		log.Fatal(fmt.Sprintf("Usage: %s <domain> <action>", os.Args[0]))
 	}
 
 	//Get arguments
-	domain := os.Args[1]
-	action := os.Args[2]
+	//domain := os.Args[1]
+	//action := os.Args[2]
 
-	log.Printf(domain)
-	log.Printf(action)
-
+	log.Printf(strings.Join(os.Args, " "))
 }
