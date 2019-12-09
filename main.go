@@ -8,27 +8,35 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 )
 
 type Hook struct {
 	Type string
 }
 
+type DomainName string
+
 type Config struct {
-	Domains map[string]Hook
+	Domains map[DomainName]Hook
+}
+
+func HandleEvent(domain DomainName, action string, config Config) error {
+	log.Printf("Got action %s for domain %s", action, domain)
+	hook := config.Domains[domain]
+	log.Println(hook.Type)
+	return nil
 }
 
 func main() {
 
 	//Setup logs
-	f, err := os.OpenFile("/tmp/libvirt-portfwd-hooks.log",
+	logfile, err := os.OpenFile("/var/log/libvirt-portfwd-hooks.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
 	}
-	defer f.Close()
-	log.SetOutput(f)
+	defer logfile.Close()
+	log.SetOutput(logfile)
 
 	//Verify arguments
 	if len(os.Args) < 3 {
@@ -37,7 +45,10 @@ func main() {
 
 	//Get arguments
 	hookdir := filepath.Dir(os.Args[0])
+	domain := DomainName(os.Args[1])
+	action := os.Args[2]
 
+	//load config
 	configfilename := path.Join(hookdir, "hooks.json")
 	configfile, err := os.Open(configfilename)
 	if err != nil {
@@ -55,8 +66,9 @@ func main() {
 		log.Fatal(fmt.Errorf("Error loading config file %s: %s", configfilename, err))
 	}
 
-	//domain := os.Args[1]
-	//action := os.Args[2]
-
-	log.Printf(strings.Join(os.Args, " "))
+	// Handle event
+	err = HandleEvent(domain, action, config)
+	if err != nil {
+		log.Fatal(fmt.Errorf("Error processing action %s for domain %s: %s", action, domain, err))
+	}
 }
