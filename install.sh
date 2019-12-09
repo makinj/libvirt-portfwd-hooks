@@ -6,8 +6,8 @@ go build .
 
 mkdir -p "${LIBVIRT_HOOKS_DIR}"
 
-cp libvirt-portfwd-hooks "${LIBVIRT_HOOKS_DIR}"
+sudo cp libvirt-portfwd-hooks "${LIBVIRT_HOOKS_DIR}"
 
-ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/qemu
-ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/network
-ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/lxc
+sudo ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/qemu
+sudo ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/network
+sudo ln -s ${LIBVIRT_HOOKS_DIR}/hooks ${LIBVIRT_HOOKS_DIR}/lxc
