@@ -8,22 +8,73 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/coreos/go-iptables/iptables"
 )
 
-type Hook struct {
-	Type string
+type HostPort struct {
+	Interface string
+	Ip        string
+	Ports     string
 }
 
-type DomainName string
+type PortForward struct {
+	Protocol    string
+	Source      HostPort
+	Destination HostPort
+}
+
+type Action string
+
+func (portfwd PortForward) HandleEvent(action Action) error {
+	natrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Source.Ports, "-i", portfwd.Source.Interface, "-j", "DNAT", "--to-ports", portfwd.Destination.Ports, "--to", portfwd.Destination.Ip, "-o", portfwd.Destination.Interface}
+	filterrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Destination.Ports, "-d", portfwd.Destination.Ip, "-i", portfwd.Source.Interface, "-o", portfwd.Destination.Interface, "-m", "state", "--state", "NEW,ESTABLISHED,RELATED", "-j", "ACCEPT"}
+
+	ipt, err := iptables.New()
+	if err != nil {
+		return err
+	}
+
+	if action == "start" {
+		err = ipt.Append("nat", "PREROUTING", natrulespec...)
+		if err != nil {
+			log.Println(err)
+		}
+		err = ipt.Insert("filter", "FORWARD", 1, filterrulespec...)
+		if err != nil {
+			log.Println(err)
+		}
+	} else if action == "stopped" {
+		err = ipt.Delete("nat", "PREROUTING", natrulespec...)
+		if err != nil {
+			log.Println(err)
+		}
+		err = ipt.Delete("filter", "FORWARD", filterrulespec...)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+	return nil
+}
+
+type DomainId string
 
 type Config struct {
-	Domains map[DomainName]Hook
+	Domains map[DomainId][]PortForward
 }
 
-func HandleEvent(domain DomainName, action string, config Config) error {
+func HandleEvent(domain DomainId, action Action, config Config) error {
 	log.Printf("Got action %s for domain %s", action, domain)
-	hook := config.Domains[domain]
-	log.Println(hook.Type)
+	forwardlist := config.Domains[domain]
+
+	for _, portfwd := range forwardlist {
+		err := portfwd.HandleEvent(action)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	//log.Println(hook.Type)
 	return nil
 }
 
@@ -45,8 +96,8 @@ func main() {
 
 	//Get arguments
 	hookdir := filepath.Dir(os.Args[0])
-	domain := DomainName(os.Args[1])
-	action := os.Args[2]
+	domain := DomainId(os.Args[1])
+	action := Action(os.Args[2])
 
 	//load config
 	configfilename := path.Join(hookdir, "hooks.json")
