@@ -27,7 +27,7 @@ type PortForward struct {
 type Action string
 
 func (portfwd PortForward) HandleEvent(action Action) error {
-	log.Prinln("forwarding %s port %s to %s", portfwd.Protocol, portfwd.Source.Ports, portfwd.Destination.Ip)
+	log.Println("forwarding %s port %s to %s", portfwd.Protocol, portfwd.Source.Ports, portfwd.Destination.Ip)
 
 	natrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Source.Ports, "-i", portfwd.Source.Interface, "-j", "DNAT", "--to-ports", portfwd.Destination.Ports, "--to", portfwd.Destination.Ip, "-o", portfwd.Destination.Interface}
 	filterrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Destination.Ports, "-d", portfwd.Destination.Ip, "-i", portfwd.Source.Interface, "-o", portfwd.Destination.Interface, "-m", "state", "--state", "NEW,ESTABLISHED,RELATED", "-j", "ACCEPT"}
