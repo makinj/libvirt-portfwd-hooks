@@ -27,6 +27,8 @@ type PortForward struct {
 type Action string
 
 func (portfwd PortForward) HandleEvent(action Action) error {
+	log.Prinln("forwarding %s port %s to %s", portfwd.Protocol, portfwd.Source.Ports, portfwd.Destination.Ip)
+
 	natrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Source.Ports, "-i", portfwd.Source.Interface, "-j", "DNAT", "--to-ports", portfwd.Destination.Ports, "--to", portfwd.Destination.Ip, "-o", portfwd.Destination.Interface}
 	filterrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Destination.Ports, "-d", portfwd.Destination.Ip, "-i", portfwd.Source.Interface, "-o", portfwd.Destination.Interface, "-m", "state", "--state", "NEW,ESTABLISHED,RELATED", "-j", "ACCEPT"}
 
@@ -65,7 +67,12 @@ type Config struct {
 
 func HandleEvent(domain DomainId, action Action, config Config) error {
 	log.Printf("Got action %s for domain %s", action, domain)
-	forwardlist := config.Domains[domain]
+	forwardlist, ok := config.Domains[domain]
+
+	if !ok {
+		log.Printf("No portfwds registered for %s", domain)
+		return nil
+	}
 
 	for _, portfwd := range forwardlist {
 		err := portfwd.HandleEvent(action)
