@@ -3,16 +3,13 @@
     "test":[
       {
         "Protocol":"tcp",
-        "Source":{
-          "Interface":"eth0",
-          "Ip":"192.168.69.1/24",
-          "Ports":"8443"
-        },
-        "destination":{
-          "interface":"virbr0",
-          "ip":"10.1.2.3",
-          "ports":"8443"
-        }
+        "Ports":"8443",
+
+        "SourceInterface":"eth0",
+        "BridgeInterface":"virbr0",
+
+        "OriginalIp":"192.168.1.100",
+        "DestinationIp":"10.1.2.3"
       }
     ]
   }
