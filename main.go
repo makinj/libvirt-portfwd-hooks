@@ -70,7 +70,11 @@ func HandleEvent(domain DomainId, action Action, config Config) error {
 	forwardlist, ok := config.Domains[domain]
 
 	if !ok {
-		log.Printf("No portfwds registered for %s", domain)
+		log.Printf("No portfwds registered for '%s'", domain)
+		for n := range config.Domains {
+			log.Printf("portfwd IS registered for '%s'", n)
+		}
+
 		return nil
 	}
 
