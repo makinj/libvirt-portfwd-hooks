@@ -27,9 +27,11 @@ type PortForward struct {
 type Action string
 
 func (portfwd PortForward) HandleEvent(action Action) error {
-	log.Println("forwarding %s port %s to %s", portfwd.Protocol, portfwd.Source.Ports, portfwd.Destination.Ip)
+	log.Printf("forwarding %s port %s to %s", portfwd.Protocol, portfwd.Source.Ports, portfwd.Destination.Ip)
 
-	natrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Source.Ports, "-i", portfwd.Source.Interface, "-j", "DNAT", "--to-ports", portfwd.Destination.Ports, "--to", portfwd.Destination.Ip, "-o", portfwd.Destination.Interface}
+	//iptables -t nat -A PREROUTING -p tcp --dport 8443 -i enp0s31f6 -j DNAT --to-ports 8443 --to 10.0.64.40
+	natrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Source.Ports, "-i", portfwd.Source.Interface, "-j", "DNAT", "--to", portfwd.Destination.Ip}
+
 	filterrulespec := []string{"-p", portfwd.Protocol, "--dport", portfwd.Destination.Ports, "-d", portfwd.Destination.Ip, "-i", portfwd.Source.Interface, "-o", portfwd.Destination.Interface, "-m", "state", "--state", "NEW,ESTABLISHED,RELATED", "-j", "ACCEPT"}
 
 	ipt, err := iptables.New()
@@ -71,9 +73,6 @@ func HandleEvent(domain DomainId, action Action, config Config) error {
 
 	if !ok {
 		log.Printf("No portfwds registered for '%s'", domain)
-		for n := range config.Domains {
-			log.Printf("portfwd IS registered for '%s'", n)
-		}
 
 		return nil
 	}
@@ -121,14 +120,12 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("Error reading config file %s: %s", configfilename, err))
 	}
-	log.Println(configcontents)
 
 	var config Config
 	err = json.Unmarshal(configcontents, &config)
 	if err != nil {
 		log.Fatal(fmt.Errorf("Error loading config file %s: %s", configfilename, err))
 	}
-	log.Println(config)
 
 	// Handle event
 	err = HandleEvent(domain, action, config)

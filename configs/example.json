@@ -1,5 +1,5 @@
 {
-  "Hooks":{
+  "domains":{
     "test":[
       {
         "Protocol":"tcp",
