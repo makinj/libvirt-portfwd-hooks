@@ -121,12 +121,14 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("Error reading config file %s: %s", configfilename, err))
 	}
+	log.Println(configcontents)
 
 	var config Config
 	err = json.Unmarshal(configcontents, &config)
 	if err != nil {
 		log.Fatal(fmt.Errorf("Error loading config file %s: %s", configfilename, err))
 	}
+	log.Println(config)
 
 	// Handle event
 	err = HandleEvent(domain, action, config)
