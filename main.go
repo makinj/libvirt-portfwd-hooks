@@ -39,11 +39,11 @@ func (portfwd PortForward) HandleEvent(action Action) error {
 	}
 
 	if action == "start" {
-		err = ipt.Append("nat", "PREROUTING", natrulespec...)
+		err = ipt.Insert("nat", "PREROUTING", 1, natrulespec...)
 		if err != nil {
 			log.Println(err)
 		}
-		err = ipt.Append("filter", "FORWARD", filterrulespec...)
+		err = ipt.Insert("filter", "FORWARD", 1, filterrulespec...)
 		if err != nil {
 			log.Println(err)
 		}
