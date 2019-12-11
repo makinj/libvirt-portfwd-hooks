@@ -43,7 +43,7 @@ func (portfwd PortForward) HandleEvent(action Action) error {
 		if err != nil {
 			log.Println(err)
 		}
-		err = ipt.Insert("filter", "FORWARD", 1, filterrulespec...)
+		err = ipt.Append("filter", "FORWARD", filterrulespec...)
 		if err != nil {
 			log.Println(err)
 		}
